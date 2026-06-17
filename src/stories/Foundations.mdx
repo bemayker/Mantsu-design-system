@@ -1,0 +1,47 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Foundations/Overview" />
+
+# Mantsu Design System
+
+Single source of truth for the Mantsu MES UI. All values below are extracted
+verbatim from the Figma Design System file. Components consume these tokens via
+the Tailwind theme (`tailwind.config.js`) and `src/tokens/tokens.ts`.
+
+**Font:** Lato (Regular 400, Medium 500, Bold 700).
+
+## Color — Enterprise Blue Scale
+- Midnight `#00193f` · Atlantic `#092755` · Horizon `#155799` · Sky Mist `#bcddff` · Frost `#eef6f8` · Selected Blue `#eff6ff`
+
+## Color — Primary
+- Primary Blue `#155799` · Primary Neutral `#0f172a` · Primary Orange `#ff5640`
+- Primary Gradient `linear-gradient(135deg, #c70c5b → #e8824f)`
+
+## Color — Neutral
+- Slate 950 `#0c1222` · 600 `#475569` · 500 `#717680` · 400 `#94a3b8` · 200 `#e2e8f0` · 50 `#f8fafc` · White `#ffffff`
+
+## Color — Status
+- Info `#3588db` / bg `#eff6ff`
+- Success `#10b981` / bg `#f0fdf4`
+- Warning `#f59e0b` / bg `#fff7ed`
+- Error `#f43f5e` / bg `#fff1f2`
+
+## Typography scale (Lato)
+| Token | Size | Line height | Weight |
+|---|---|---|---|
+| H1 | 36 | 40 | Bold |
+| H2 | 24 | 32 | Bold |
+| H3 | 20 | 28 | Bold |
+| H4 | 18 | auto | Bold |
+| Body Large | 16 | auto | Bold |
+| Body Emphasis | 16 | auto | Medium |
+| Body Paragraph | 16 | auto | Regular |
+| Body Small Emphasis | 14 | auto | Bold |
+| Body Small Caption | 14 | auto | Regular |
+| Body Smallest Emphasis | 12 | auto | Bold |
+| Body Smallest Caption | 12 | auto | Regular |
+
+## Shadows
+- Small `0 1px 2px 0 rgba(10,13,18,.05)`
+- Medium `0 1px 1px 0 rgba(10,13,18,.05)`
+- Large `0 8px 12px -4px rgba(21,21,21,.25)`
