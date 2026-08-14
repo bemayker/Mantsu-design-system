@@ -247,3 +247,80 @@ export const TreeDraggable: StoryObj = {
     );
   },
 };
+
+/**
+ * `archived` vs `disabled` (DS-1 / DS-8 / DS-9).
+ *
+ * Two flags that look interchangeable and are not. `disabled` means "not a thing you can
+ * act on": no selection, no checking, no dragging, and a parent's cascade check skips it
+ * and its whole subtree. `archived` means "retired but still real": muted, and neither
+ * draggable nor a drop target, but still selectable — which is what a restore flow needs,
+ * and the reason an app cannot express "archived" by setting `disabled`.
+ *
+ * Try it: `Old line B` cannot be dragged and nothing can be dropped onto it, but clicking
+ * it still selects it. `Decommissioned zone` cannot be selected at all.
+ */
+const archivedAndDisabled: TreeNode[] = [
+  {
+    id: 'site',
+    label: 'Ghent site',
+    children: [
+      { id: 'line-a', label: 'Line A' },
+      { id: 'line-b', label: 'Old line B', archived: true },
+      { id: 'zone-x', label: 'Decommissioned zone', disabled: true, children: [
+        { id: 'zone-x-1', label: 'Mixer (unreachable)' },
+      ] },
+    ],
+  },
+];
+
+export const TreeArchivedVsDisabled: StoryObj = {
+  render: () => {
+    const [log, setLog] = useState('Select or drag a node…');
+    return (
+      <div className="w-80 space-y-2">
+        <Tree
+          draggable
+          showLines
+          defaultExpanded={['site', 'zone-x']}
+          nodes={archivedAndDisabled}
+          onSelect={(id) => setLog(`Selected ${id}`)}
+          onMove={({ dragId, targetId, position }) =>
+            setLog(`Move ${dragId} ${position} ${targetId}`)}
+        />
+        <p className="text-body-xs text-slate-500">{log}</p>
+      </div>
+    );
+  },
+};
+
+/**
+ * The cascade check skips `disabled` nodes and their subtree (DS-9).
+ *
+ * Check `Ghent site`. `Decommissioned zone` and the mixer beneath it stay unchecked,
+ * while everything else is swept up. Before this, a direct check on a disabled node was
+ * refused but a check on its PARENT pulled it in anyway — the guard held exactly where a
+ * user could see it and nowhere else.
+ *
+ * `Old line B` IS checked, because `archived` does not block checking.
+ */
+export const TreeCascadeSkipsDisabled: StoryObj = {
+  render: () => {
+    const [checked, setChecked] = useState<string[]>([]);
+    return (
+      <div className="w-80 space-y-2">
+        <Tree
+          checkable
+          showLines
+          defaultExpanded={['site', 'zone-x']}
+          nodes={archivedAndDisabled}
+          checkedIds={checked}
+          onCheckedChange={setChecked}
+        />
+        <p className="text-body-xs text-slate-500">
+          checked: {checked.length ? checked.join(', ') : '(none)'}
+        </p>
+      </div>
+    );
+  },
+};
