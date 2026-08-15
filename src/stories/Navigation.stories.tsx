@@ -4,7 +4,7 @@ import { Tabs } from '../components/Tabs';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { Sidebar } from '../components/Sidebar';
 import { TopNavBar } from '../components/TopNavBar';
-import { Tree, type TreeNode } from '../components/Tree';
+import { Tree, filterTree, type TreeNode } from '../components/Tree';
 
 const meta: Meta = { title: 'Components/Navigation', tags: ['autodocs'] };
 export default meta;
@@ -290,6 +290,115 @@ export const TreeSearchable: StoryObj = {
           onSelect={setSelected}
           nodes={plantHierarchy}
         />
+      </div>
+    );
+  },
+};
+
+/**
+ * `searchQuery` / `onSearchQueryChange` (DS-5): the search box lives outside the tree.
+ *
+ * `searchable` only decides whether the component renders its OWN input. Filtering runs
+ * off `searchQuery` either way — so a consumer can put the search box in its own toolbar,
+ * next to unrelated controls, and still get identical ancestor-preserving filtering.
+ * Note this tree has `searchable` OFF and still filters.
+ *
+ * Because the query is now the consumer's state, it can also be reset from outside, which
+ * is what an app needs when the thing being browsed is swapped out underneath the tree.
+ * `filterTree` is exported alongside, so the count below is the component's own matcher
+ * rather than a second, subtly different one.
+ */
+export const TreeControlledSearch: StoryObj = {
+  render: () => {
+    const [query, setQuery] = useState('bel');
+    const matches = filterTree(reasonCodes, query).nodes;
+
+    return (
+      <div className="w-72 space-y-2">
+        <div className="flex gap-2">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="My own toolbar input…"
+            className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-body-sm outline-none"
+          />
+          <button
+            onClick={() => setQuery('')}
+            className="shrink-0 rounded-md border border-slate-200 px-2.5 text-body-sm"
+          >
+            Clear
+          </button>
+        </div>
+        <Tree
+          searchQuery={query}
+          onSearchQueryChange={setQuery}
+          defaultExpanded={['technical', 'mechanical', 'organisational']}
+          nodes={reasonCodes}
+        />
+        <p className="text-body-xs text-slate-500">
+          filterTree(): {matches.length} root branch(es) kept
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * `expandOnSelect` (DS-4) and `labels` (DS-3).
+ *
+ * **Left, the default.** Clicking a row both selects it and toggles it open, which is
+ * right when opening a branch IS the point of clicking it.
+ *
+ * **Right, `expandOnSelect={false}`.** Clicking a row only selects it; the chevron is the
+ * only way to expand. Right when selecting a node and opening it are different
+ * intentions — a master/detail screen where selecting a branch loads it into a form.
+ * The keyboard `Enter`/`Space` path follows the mouse, so the two do not disagree.
+ *
+ * The right-hand tree also passes `labels`, so its chevron reads "Ouvrir"/"Fermer" to a
+ * screen reader and its empty state is French. Every key is optional and falls back to
+ * the English literal that used to be hardcoded — search for "gibberish" on the left tree
+ * to see the untranslated default.
+ */
+export const TreeExpandOnSelectAndLabels: StoryObj = {
+  render: () => {
+    const [defaultSelected, setDefaultSelected] = useState('');
+    const [decoupledSelected, setDecoupledSelected] = useState('');
+
+    return (
+      <div className="flex gap-8">
+        <div className="w-72 space-y-2">
+          <p className="text-body-sm-emphasis text-primary-neutral">
+            expandOnSelect (default: true)
+          </p>
+          <Tree
+            searchable
+            selectedId={defaultSelected}
+            onSelect={setDefaultSelected}
+            nodes={reasonCodes}
+          />
+          <p className="text-body-xs text-slate-500">selected: {defaultSelected || '(none)'}</p>
+        </div>
+
+        <div className="w-72 space-y-2">
+          <p className="text-body-sm-emphasis text-primary-neutral">
+            expandOnSelect={'{false}'} + French labels
+          </p>
+          <Tree
+            searchable
+            expandOnSelect={false}
+            testId="reason-tree"
+            labels={{
+              expand: 'Ouvrir',
+              collapse: 'Fermer',
+              noResults: 'Aucun résultat',
+              searchPlaceholder: 'Rechercher…',
+            }}
+            selectedId={decoupledSelected}
+            onSelect={setDecoupledSelected}
+            nodes={reasonCodes}
+          />
+          <p className="text-body-xs text-slate-500">selected: {decoupledSelected || '(none)'}</p>
+        </div>
       </div>
     );
   },

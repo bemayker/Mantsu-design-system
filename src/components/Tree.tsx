@@ -80,6 +80,34 @@ export type DropPosition = 'before' | 'inside' | 'after';
  */
 export type CheckStrategy = 'cascade' | 'self';
 
+/**
+ * Overrides for the strings this component renders itself (DS-3).
+ *
+ * Every key is optional and falls back to the English literal that was hardcoded before
+ * this existed, so an app that passes nothing, or passes a partial object, is unchanged.
+ *
+ * The component holds no opinion about HOW a consumer translates: an i18n app passes
+ * `t(...)` results, a single-language app passes nothing. What it must not do is force
+ * every consumer into English, which is what a hardcoded literal does.
+ */
+export interface TreeLabels {
+  /** Chevron `aria-label` when the node is collapsed. Default `'Expand'`. */
+  expand?: string;
+  /** Chevron `aria-label` when the node is expanded. Default `'Collapse'`. */
+  collapse?: string;
+  /** Shown when a search matches nothing. Default `'No results'`. */
+  noResults?: string;
+  /** Built-in search input placeholder and `aria-label`. Default `'Search…'`. */
+  searchPlaceholder?: string;
+}
+
+const DEFAULT_LABELS: Required<TreeLabels> = {
+  expand: 'Expand',
+  collapse: 'Collapse',
+  noResults: 'No results',
+  searchPlaceholder: 'Search…',
+};
+
 export interface TreeProps {
   nodes: TreeNode[];
 
@@ -110,7 +138,27 @@ export interface TreeProps {
 
   /** Built-in search field that filters the tree and expands matching branches. */
   searchable?: boolean;
+  /**
+   * Placeholder for the built-in search input.
+   *
+   * Kept for compatibility with consumers written before `labels` existed.
+   * `labels.searchPlaceholder` is the new home for this string and wins when both are
+   * given; prefer it, so one component does not read the same text from two places.
+   */
   searchPlaceholder?: string;
+
+  /**
+   * Controlled search query (DS-5), mirroring the `expandedIds` / `onExpandedChange`
+   * pattern. When omitted, the query is internal state and behaviour is unchanged.
+   *
+   * Filtering runs off this value whether or not `searchable` is set: `searchable` only
+   * decides whether the component renders its OWN visible input. That separation is the
+   * point — it lets a consumer put the search box in its own toolbar and still get
+   * identical ancestor-preserving filtering, and lets the query be reset externally (for
+   * example when the thing being browsed is swapped out underneath the tree).
+   */
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 
   /** Right-click context menu. Return the items for a given node (or [] to suppress). */
   contextMenuItems?: (node: TreeNode) => TreeContextMenuItem[];
@@ -121,6 +169,37 @@ export interface TreeProps {
 
   /** Scroll this node into view on mount / when it changes. */
   scrollToId?: string;
+
+  /**
+   * Whether clicking a row also toggles its expansion (DS-4). Defaults to `true`, the
+   * coupled behaviour this component always had.
+   *
+   * Set `false` when selecting a node and opening it are different intentions — a
+   * master/detail screen where selecting a branch loads it into a form, say. Then the
+   * chevron becomes the only way to expand, and the keyboard `Enter`/`Space` handler
+   * follows the mouse rather than quietly keeping the old coupling.
+   */
+  expandOnSelect?: boolean;
+
+  /**
+   * `data-testid` for the outer container (DS-2).
+   *
+   * The per-node hooks below are always emitted and need no opt-in; this one is a prop
+   * because only the consumer knows what to call the tree on its own screen.
+   *
+   * Every rendered row also carries generic, component-defined attributes so a consumer
+   * can write stable selectors without reaching for a CSS structural or `style` selector:
+   * `data-tree-node`, `data-tree-node-toggle`, `data-tree-node-checkbox` and
+   * `data-tree-node-color` each hold the node's id, plus `data-tree-search` on the
+   * built-in input and `data-tree-empty` on the no-results row. These are deliberately
+   * NOT `data-testid`: an app's `data-testid` naming is the app's, while these name
+   * parts of this component, and a shared component minting app-shaped test ids is how
+   * two consumers end up fighting over one attribute.
+   */
+  testId?: string;
+
+  /** Overrides for this component's own English strings (DS-3). */
+  labels?: TreeLabels;
 
   className?: string;
 }
@@ -184,8 +263,17 @@ function flatten(nodes: TreeNode[], expanded: Set<string>): FlatNode[] {
   return out;
 }
 
-/** Filter the tree to nodes matching `query` (or with a matching descendant). */
-function filterTree(nodes: TreeNode[], query: string): { nodes: TreeNode[]; expand: Set<string> } {
+/**
+ * Filter the tree to nodes matching `query` (or with a matching descendant), and report
+ * which branches must be expanded for the matches to be visible.
+ *
+ * Exported (DS-5) because a consumer driving `searchQuery` from its own toolbar input
+ * generally also needs the filtered shape for something else — an empty-state decision, a
+ * result count, a "clear search" affordance — and the alternative to exporting it is
+ * every consumer writing a second, subtly different matcher. Matching is on `label` and
+ * `subtitle`, case-insensitive substring.
+ */
+export function filterTree(nodes: TreeNode[], query: string): { nodes: TreeNode[]; expand: Set<string> } {
   const q = query.trim().toLowerCase();
   const expand = new Set<string>();
   if (!q) return { nodes, expand };
@@ -308,6 +396,8 @@ interface TreeItemProps {
   checkState: (node: TreeNode) => 'checked' | 'unchecked' | 'indeterminate';
   dndEnabled: boolean;
   dropTarget: { id: string; position: DropPosition } | null;
+  expandOnSelect: boolean;
+  labels: Required<TreeLabels>;
   onSelect?: (id: string) => void;
   onCheck: (node: TreeNode) => void;
   toggle: (id: string) => void;
@@ -323,7 +413,8 @@ interface TreeItemProps {
 const TreeItem: React.FC<TreeItemProps> = (p) => {
   const {
     node, depth, guides, isLast, showLines, checkable, selectedId, focusId, expanded,
-    checkState, dndEnabled, dropTarget, onSelect, onCheck, toggle, setFocusId, registerRef,
+    checkState, dndEnabled, dropTarget, expandOnSelect, labels,
+    onSelect, onCheck, toggle, setFocusId, registerRef,
     onContextMenu, onDragStartNode, onDragOverNode, onDropNode, onDragEndNode,
   } = p;
 
@@ -341,7 +432,13 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
         tabIndex={focusId === node.id ? 0 : -1}
         draggable={dndEnabled && !node.disabled && !node.archived}
         onFocus={() => setFocusId(node.id)}
-        onClick={() => { if (!node.disabled) { onSelect?.(node.id); if (hasChildren) toggle(node.id); } }}
+        data-tree-node={node.id}
+        onClick={() => {
+          if (node.disabled) return;
+          onSelect?.(node.id);
+          // DS-4: expansion follows selection only when the consumer wants it to.
+          if (hasChildren && expandOnSelect) toggle(node.id);
+        }}
         onContextMenu={(e) => onContextMenu(e, node)}
         onDragStart={(e) => { e.stopPropagation(); onDragStartNode(node.id); }}
         onDragOver={(e) => onDragOverNode(e, node)}
@@ -374,7 +471,8 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
           <span
             role="button"
             tabIndex={-1}
-            aria-label={isOpen ? 'Collapse' : 'Expand'}
+            aria-label={isOpen ? labels.collapse : labels.expand}
+            data-tree-node-toggle={node.id}
             className="flex size-5 shrink-0 items-center justify-center rounded-sm text-slate-400 hover:bg-slate-100"
             onClick={(e) => { e.stopPropagation(); toggle(node.id); }}
           >
@@ -386,7 +484,11 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
 
         {/* Checkbox */}
         {checkable && (
-          <span onClick={(e) => e.stopPropagation()} className="flex shrink-0 items-center">
+          <span
+            onClick={(e) => e.stopPropagation()}
+            data-tree-node-checkbox={node.id}
+            className="flex shrink-0 items-center"
+          >
             <Checkbox
               checked={cs === 'checked'}
               indeterminate={cs === 'indeterminate'}
@@ -399,7 +501,12 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
 
         {/* Status circle */}
         {node.color && (
-          <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: node.color }} aria-hidden />
+          <span
+            data-tree-node-color={node.id}
+            className="size-2.5 shrink-0 rounded-full"
+            style={{ backgroundColor: node.color }}
+            aria-hidden
+          />
         )}
 
         {/* Icon */}
@@ -437,15 +544,31 @@ export const Tree: React.FC<TreeProps> = ({
   checkable = false, checkedIds, defaultCheckedIds = [], onCheckedChange,
   checkStrategy = 'cascade',
   defaultExpanded = [], expandedIds, onExpandedChange,
-  showLines = false, searchable = false, searchPlaceholder = 'Search…',
-  contextMenuItems, draggable = false, onMove, scrollToId, className,
+  showLines = false, searchable = false, searchPlaceholder,
+  searchQuery, onSearchQueryChange,
+  contextMenuItems, draggable = false, onMove, scrollToId,
+  expandOnSelect = true, testId, labels, className,
 }) => {
+  // `searchPlaceholder` predates `labels` and still works; `labels.searchPlaceholder`
+  // wins when both are given, so a consumer migrating to `labels` does not have to
+  // delete the old prop in the same commit.
+  const resolvedLabels: Required<TreeLabels> = {
+    ...DEFAULT_LABELS,
+    ...(searchPlaceholder !== undefined ? { searchPlaceholder } : {}),
+    ...labels,
+  };
   /* expansion (controlled / uncontrolled) */
   const expansionControlled = expandedIds !== undefined;
   const [internalExpanded, setInternalExpanded] = React.useState(() => new Set(defaultExpanded));
 
-  /* search */
-  const [query, setQuery] = React.useState('');
+  /* search (controlled via searchQuery / onSearchQueryChange, else internal) */
+  const searchControlled = searchQuery !== undefined;
+  const [internalQuery, setInternalQuery] = React.useState('');
+  const query = searchControlled ? searchQuery : internalQuery;
+  const commitQuery = (next: string) => {
+    if (searchControlled) onSearchQueryChange?.(next);
+    else setInternalQuery(next);
+  };
   const { nodes: viewNodes, expand: searchExpand } = React.useMemo(
     () => filterTree(nodes, query),
     [nodes, query]
@@ -586,7 +709,10 @@ export const Tree: React.FC<TreeProps> = ({
       case 'Enter': case ' ':
         e.preventDefault();
         if (checkable) onCheck(nodeIndex.get(cur.id)!.node);
-        else { onSelect?.(cur.id); if (cur.hasChildren) toggle(cur.id); }
+        // DS-4: the keyboard path honours `expandOnSelect` exactly like the mouse path.
+        // Leaving it coupled here would make a tree behave one way for pointer users and
+        // another for keyboard users, which is a worse bug than the coupling itself.
+        else { onSelect?.(cur.id); if (cur.hasChildren && expandOnSelect) toggle(cur.id); }
         break;
     }
   };
@@ -646,12 +772,13 @@ export const Tree: React.FC<TreeProps> = ({
 
   const itemShared = {
     showLines, checkable, selectedId, focusId, expanded, checkState,
-    dndEnabled: draggable, dropTarget, onSelect, onCheck, toggle, setFocusId, registerRef,
+    dndEnabled: draggable, dropTarget, expandOnSelect, labels: resolvedLabels,
+    onSelect, onCheck, toggle, setFocusId, registerRef,
     onContextMenu, onDragStartNode: setDragId, onDragOverNode, onDropNode, onDragEndNode,
   };
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div data-testid={testId} className={cn('flex flex-col gap-2', className)}>
       {searchable && (
         <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-1.5">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -660,10 +787,11 @@ export const Tree: React.FC<TreeProps> = ({
           </svg>
           <input
             type="text"
+            data-tree-search
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
+            onChange={(e) => commitQuery(e.target.value)}
+            placeholder={resolvedLabels.searchPlaceholder}
+            aria-label={resolvedLabels.searchPlaceholder}
             className="w-full bg-transparent text-body-sm text-primary-neutral outline-none placeholder:text-slate-500"
           />
         </div>
@@ -671,7 +799,9 @@ export const Tree: React.FC<TreeProps> = ({
 
       <ul className="select-none" role="tree" aria-multiselectable={checkable || undefined} onKeyDown={onKeyDown}>
         {viewNodes.length === 0 ? (
-          <li className="px-2 py-3 text-body-sm text-slate-500">No results</li>
+          <li data-tree-empty className="px-2 py-3 text-body-sm text-slate-500">
+            {resolvedLabels.noResults}
+          </li>
         ) : (
           viewNodes.map((n, i) => (
             <TreeItem
