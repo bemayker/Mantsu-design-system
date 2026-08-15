@@ -26,8 +26,27 @@ export interface TreeNode {
   icon?: React.ReactNode;
   /** Optional status circle colour (any CSS colour). Omit for no circle. */
   color?: string;
-  /** Disable selection / checking / dragging for this node. */
+  /**
+   * Inert: not selectable, not checkable, not draggable, and never swept up by a
+   * parent's cascade check.
+   *
+   * This is the "this node is not a thing you can act on" flag. If what you mean is
+   * "this node still exists but is retired", use `archived` — it stays selectable, which
+   * is what a restore flow needs.
+   */
   disabled?: boolean;
+  /**
+   * Retired but still real: rendered muted, and neither draggable nor a drop target,
+   * but still selectable and checkable.
+   *
+   * Separate from `disabled` on purpose (DS-1/DS-8). An archived node must stay
+   * selectable, because selecting it is how a user restores it — so an app cannot express
+   * "archived" by setting `disabled`, and before this existed the only way to get the
+   * muted styling was to leave the node fully draggable.
+   *
+   * Ordering to `disabled` is: `disabled` wins wherever they overlap.
+   */
+  archived?: boolean;
   children?: TreeNode[];
 }
 
@@ -161,7 +180,23 @@ function filterTree(nodes: TreeNode[], query: string): { nodes: TreeNode[]; expa
   return { nodes: walk(nodes), expand };
 }
 
+/**
+ * Every id in `node`'s subtree that a cascade check may touch, `node` included.
+ *
+ * A `disabled` node is skipped AND not descended into (DS-9). Before this, a direct
+ * check on a disabled node was correctly refused by `Checkbox`/`TreeItem` while a check
+ * on its PARENT swept it up anyway — the guard held at the point a user could see it and
+ * failed everywhere else, which is the worst shape for that bug.
+ *
+ * Not descending is deliberate rather than incidental: a subtree hanging under a disabled
+ * node is not reachable for checking by any other route either, so including its children
+ * while excluding their parent would produce a state the user cannot undo from the UI.
+ *
+ * `archived` is NOT skipped. An archived node is still checkable; that is the whole
+ * distinction between the two flags.
+ */
 function collectDescendantIds(node: TreeNode, into: Set<string>) {
+  if (node.disabled) return;
   into.add(node.id);
   node.children?.forEach((c) => collectDescendantIds(c, into));
 }
@@ -277,7 +312,7 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
       <div
         ref={(el) => registerRef(node.id, el)}
         tabIndex={focusId === node.id ? 0 : -1}
-        draggable={dndEnabled && !node.disabled}
+        draggable={dndEnabled && !node.disabled && !node.archived}
         onFocus={() => setFocusId(node.id)}
         onClick={() => { if (!node.disabled) { onSelect?.(node.id); if (hasChildren) toggle(node.id); } }}
         onContextMenu={(e) => onContextMenu(e, node)}
@@ -290,6 +325,9 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
           'focus-visible:ring-2 focus-visible:ring-primary-blue/40',
           isSelected ? 'bg-selected-blue text-primary-blue' : 'text-primary-neutral hover:bg-slate-50',
           node.disabled && 'cursor-default opacity-50',
+          // Muted, but NOT `cursor-default`: an archived node is still selectable, and
+          // the cursor is what tells a user that (DS-1).
+          node.archived && !node.disabled && 'opacity-60',
           drop === 'inside' && 'bg-selected-blue ring-1 ring-primary-blue/40',
           drop === 'before' && 'shadow-[inset_0_2px_0_0_#155799]',
           drop === 'after' && 'shadow-[inset_0_-2px_0_0_#155799]'
@@ -421,8 +459,16 @@ export const Tree: React.FC<TreeProps> = ({
   }, [nodes]);
 
   const checkState = React.useCallback((node: TreeNode): 'checked' | 'unchecked' | 'indeterminate' => {
-    if (!node.children?.length) return checked.has(node.id) ? 'checked' : 'unchecked';
-    const states = node.children.map(checkState);
+    // Disabled children are excluded here for the same reason `collectDescendantIds`
+    // skips them (DS-9), and the two MUST agree. If the cascade refuses to check a
+    // disabled child while this function still counts it, the parent can never reach
+    // `checked`: it would sit on `indeterminate` forever and clicking it would flip
+    // between indeterminate and unchecked with no way to reach checked. That is a worse
+    // bug than the one DS-9 fixes, and it is only avoided by changing both together.
+    const relevant = node.children?.filter((child) => !child.disabled) ?? [];
+    // A node whose children are ALL disabled reads as a leaf, on its own checked state.
+    if (!relevant.length) return checked.has(node.id) ? 'checked' : 'unchecked';
+    const states = relevant.map(checkState);
     if (states.every((s) => s === 'checked')) return 'checked';
     if (states.every((s) => s === 'unchecked')) return 'unchecked';
     return 'indeterminate';
@@ -521,7 +567,12 @@ export const Tree: React.FC<TreeProps> = ({
   }, [nodeIndex]);
 
   const onDragOverNode = (e: React.DragEvent, node: TreeNode) => {
-    if (!draggable || !dragId || node.disabled) return;
+    // Returning BEFORE `preventDefault` is what makes the node a non-target: without the
+    // preventDefault the browser refuses the drop, so no indicator is drawn and `onMove`
+    // is never called. An archived node is excluded here as well as from `draggable`
+    // above, because "cannot be moved" and "cannot be moved INTO" are both true of it
+    // and only the first was covered before (DS-8).
+    if (!draggable || !dragId || node.disabled || node.archived) return;
     if (dragId === node.id || isDescendant(dragId, node.id)) return; // can't drop onto self / own subtree
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();

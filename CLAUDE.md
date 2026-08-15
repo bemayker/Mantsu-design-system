@@ -24,3 +24,6 @@ npm run typecheck && git add -A && git commit -m "Add Mantsu design system: toke
   (file kN9ZMAZ7NrhNp0iu8gpzEC). Do not hand-edit them; regenerate from Figma.
 - Tailwind theme in tailwind.config.js mirrors src/tokens/tokens.ts — keep them in sync.
 - New components go in src/components + a story in src/stories, exported via src/components/index.ts.
+- This repo is source-only; apps vendor copies. See VENDORING.md. A change requested by a
+  consuming app lands HERE first, with a story that demonstrates it, and is then
+  re-vendored — never only in that app's copy, or the next app inherits the original bug.

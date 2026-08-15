@@ -27,7 +27,16 @@ src/
   styles/globals.css      # Tailwind entry + Lato font
 tailwind.config.js        # Tailwind theme wired to the tokens
 DESIGN-SYSTEM.md          # compact reference for Cursor / codegen
+VENDORING.md              # how an app takes a component from here, and the rule
+                          # that a gap is fixed HERE first and then re-vendored
 ```
+
+## Using a component in an app
+
+This repo is **source-only**: `private: true`, no build, no `exports`, nothing to
+`npm install`. Apps take vendored copies instead, and **[VENDORING.md](VENDORING.md)** is
+the process — including the rule that matters most, that a gap in a component is fixed
+here first and then re-vendored, never only in the copy.
 
 ## Tokens
 
