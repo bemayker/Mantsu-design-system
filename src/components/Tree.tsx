@@ -60,6 +60,26 @@ export interface TreeContextMenuItem {
 
 export type DropPosition = 'before' | 'inside' | 'after';
 
+/**
+ * How a checkbox click propagates through the tree (DS-6).
+ *
+ * `'cascade'` (the default, and the only behaviour before DS-6) treats the tree as a
+ * hierarchy of containment: checking a node checks its whole subtree, unchecking clears
+ * it, and a parent reconciles to `checked` / `indeterminate` / `unchecked` from its
+ * children. Right for "select this branch and everything under it".
+ *
+ * `'self'` treats the tree as a *browsing structure over a flat set*: a click toggles
+ * exactly the clicked node, nothing else moves, and no node ever renders
+ * `indeterminate`. Right when a parent and its children are independently meaningful
+ * choices rather than a whole and its parts.
+ *
+ * The concrete case that forced this (mantsu-downtimes' reason-code assignment): a
+ * machine can be assigned a parent reason WITHOUT its children. Under `'cascade'` that
+ * state is not representable at all — checking the parent silently assigns every
+ * descendant — so the consumer had to either fork the component or fight it.
+ */
+export type CheckStrategy = 'cascade' | 'self';
+
 export interface TreeProps {
   nodes: TreeNode[];
 
@@ -72,6 +92,13 @@ export interface TreeProps {
   checkedIds?: string[];
   defaultCheckedIds?: string[];
   onCheckedChange?: (ids: string[]) => void;
+
+  /**
+   * How a check propagates (DS-6). Defaults to `'cascade'`, the behaviour every
+   * consumer had before this prop existed, so adding it changes nothing for anyone who
+   * does not pass it.
+   */
+  checkStrategy?: CheckStrategy;
 
   /** Expansion (uncontrolled via defaultExpanded, or controlled via expandedIds). */
   defaultExpanded?: string[];
@@ -408,6 +435,7 @@ const TreeItem: React.FC<TreeItemProps> = (p) => {
 export const Tree: React.FC<TreeProps> = ({
   nodes, selectedId, onSelect,
   checkable = false, checkedIds, defaultCheckedIds = [], onCheckedChange,
+  checkStrategy = 'cascade',
   defaultExpanded = [], expandedIds, onExpandedChange,
   showLines = false, searchable = false, searchPlaceholder = 'Search…',
   contextMenuItems, draggable = false, onMove, scrollToId, className,
@@ -459,6 +487,11 @@ export const Tree: React.FC<TreeProps> = ({
   }, [nodes]);
 
   const checkState = React.useCallback((node: TreeNode): 'checked' | 'unchecked' | 'indeterminate' => {
+    // DS-6: under `'self'` a node's state is its own membership of the set and nothing
+    // else. `indeterminate` is not merely unused here, it is meaningless: there is no
+    // whole-and-parts relationship for a parent to be partway through.
+    if (checkStrategy === 'self') return checked.has(node.id) ? 'checked' : 'unchecked';
+
     // Disabled children are excluded here for the same reason `collectDescendantIds`
     // skips them (DS-9), and the two MUST agree. If the cascade refuses to check a
     // disabled child while this function still counts it, the parent can never reach
@@ -472,10 +505,31 @@ export const Tree: React.FC<TreeProps> = ({
     if (states.every((s) => s === 'checked')) return 'checked';
     if (states.every((s) => s === 'unchecked')) return 'unchecked';
     return 'indeterminate';
-  }, [checked]);
+  }, [checked, checkStrategy]);
 
   const onCheck = React.useCallback((node: TreeNode) => {
+    // A disabled node is never checkable, by any route. The rendered `Checkbox` already
+    // refuses the pointer, but the keyboard `Enter`/`Space` handler calls straight in
+    // here — so before DS-6 a disabled node COULD be toggled with the keyboard while
+    // being unclickable with the mouse. Guarding at the single entry point closes both
+    // paths at once and keeps this consistent with DS-9's cascade rule, rather than
+    // leaving one accessibility-only hole in an otherwise enforced invariant.
+    if (node.disabled) return;
+
     const next = new Set(checked);
+
+    // DS-6: `'self'` toggles exactly the clicked node. No subtree walk, no ancestor
+    // reconciliation — both of those are the cascade's model of containment, and
+    // applying either here would silently re-introduce the behaviour this strategy
+    // exists to opt out of.
+    if (checkStrategy === 'self') {
+      if (next.has(node.id)) next.delete(node.id);
+      else next.add(node.id);
+      if (checkControlled) onCheckedChange?.([...next]);
+      else setInternalChecked(next);
+      return;
+    }
+
     const target = checkState(node) !== 'checked';
     const subtree = new Set<string>();
     collectDescendantIds(node, subtree);
@@ -490,7 +544,7 @@ export const Tree: React.FC<TreeProps> = ({
     }
     if (checkControlled) onCheckedChange?.([...next]);
     else setInternalChecked(next);
-  }, [checked, checkState, nodeIndex, checkControlled, onCheckedChange]);
+  }, [checked, checkState, checkStrategy, nodeIndex, checkControlled, onCheckedChange]);
 
   /* keyboard navigation */
   const flat = React.useMemo(() => flatten(viewNodes, expanded), [viewNodes, expanded]);

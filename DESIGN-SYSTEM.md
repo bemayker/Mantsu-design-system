@@ -49,7 +49,7 @@ Lato. Weights: Regular 400, Medium 500, Bold 700.
 - **Tabs** `items, value/defaultValue, onChange`
 - **Breadcrumbs** `items`
 - **Sidebar** navy nav `items, activeId`; **TopNavBar** `title, left, right`
-- **Tree** hierarchical (Site→Building→Floor→Zone→Equipment). Nodes: `id, label, subtitle?, icon?, color?, disabled?, children?`. Props: `selectedId/onSelect`, `checkable` (tri-state checkboxes) + `checkedIds/onCheckedChange`, `defaultExpanded/expandedIds/onExpandedChange`, `showLines` (Figma connector lines, default off), `searchable`, `contextMenuItems`, `draggable/onMove`, `scrollToId`. Chevron caret + 14px text + 20px indent; full keyboard + ARIA.
+- **Tree** hierarchical (Site→Building→Floor→Zone→Equipment). Nodes: `id, label, subtitle?, icon?, color?, disabled?, archived?, children?` (`disabled` = not actionable at all; `archived` = retired but still selectable, and neither draggable nor a drop target — see DS-1/DS-8). Props: `selectedId/onSelect`, `checkable` (tri-state checkboxes) + `checkedIds/onCheckedChange`, `checkStrategy` (`'cascade'` default = check the whole subtree; `'self'` = toggle only the clicked node, never `indeterminate` — DS-6), `defaultExpanded/expandedIds/onExpandedChange`, `showLines` (Figma connector lines, default off), `searchable`, `contextMenuItems`, `draggable/onMove`, `scrollToId`. Chevron caret + 14px text + 20px indent; full keyboard + ARIA.
 - **Modal** / **SideDrawer** `open, onClose, title, footer`
 - **Toast** `variant, title, description`
 - **Tooltip** `content, side`

@@ -168,6 +168,33 @@ export const TreeWithSubtitlesAndStatus: StoryObj = {
   },
 };
 
+/**
+ * A downtime reason tree: three levels, so `'cascade'` has a real subtree to sweep and
+ * `'self'` has a real parent-without-children state to express.
+ */
+const reasonCodes: TreeNode[] = [
+  {
+    id: 'technical', label: 'Technical',
+    children: [
+      {
+        id: 'mechanical', label: 'Mechanical',
+        children: [
+          { id: 'belt-slip', label: 'Belt slip' },
+          { id: 'bearing', label: 'Bearing failure' },
+        ],
+      },
+      { id: 'electrical', label: 'Electrical' },
+    ],
+  },
+  {
+    id: 'organisational', label: 'Organisational',
+    children: [
+      { id: 'no-material', label: 'No material' },
+      { id: 'no-operator', label: 'No operator' },
+    ],
+  },
+];
+
 /** Multi-selection with tri-state checkboxes. */
 export const TreeWithCheckboxes: StoryObj = {
   render: () => {
@@ -181,6 +208,70 @@ export const TreeWithCheckboxes: StoryObj = {
           defaultExpanded={['site', 'b1', 'f1', 'z1', 'b2']}
           nodes={plantHierarchy}
         />
+      </div>
+    );
+  },
+};
+
+/**
+ * `checkStrategy` (DS-6): the same tree, the same clicks, two different meanings.
+ *
+ * **Left, `'cascade'` (the default).** The tree is a hierarchy of containment. Check
+ * `Mechanical` and its whole subtree comes with it; uncheck one child and the parent
+ * drops to `indeterminate`. Right for "select this branch and everything under it".
+ *
+ * **Right, `'self'`.** The tree is a browsing structure over a flat set. Check
+ * `Mechanical` and *only* `Mechanical` is checked — its children stay exactly as they
+ * were, and no node ever renders `indeterminate`. Right when a parent and its children
+ * are independently meaningful choices.
+ *
+ * The concrete case that forced this prop: mantsu-downtimes assigns reason codes to a
+ * machine, and a machine may be assigned a parent reason WITHOUT its children. Under
+ * `'cascade'` that state cannot be expressed at all. Click `Mechanical` on both sides
+ * and compare the two id lists underneath to see it.
+ *
+ * `'cascade'` is the default, so nothing changes for a consumer that does not pass the
+ * prop.
+ */
+export const TreeCheckStrategy: StoryObj = {
+  render: () => {
+    const [cascadeChecked, setCascadeChecked] = useState<string[]>([]);
+    const [selfChecked, setSelfChecked] = useState<string[]>([]);
+    const expanded = ['technical', 'mechanical', 'organisational'];
+
+    return (
+      <div className="flex gap-8">
+        <div className="w-72 space-y-2">
+          <p className="text-body-sm-emphasis text-primary-neutral">
+            checkStrategy="cascade" (default)
+          </p>
+          <Tree
+            checkable
+            checkStrategy="cascade"
+            checkedIds={cascadeChecked}
+            onCheckedChange={setCascadeChecked}
+            defaultExpanded={expanded}
+            nodes={reasonCodes}
+          />
+          <p className="text-body-xs text-slate-500">
+            checked: {cascadeChecked.length ? cascadeChecked.join(', ') : '(none)'}
+          </p>
+        </div>
+
+        <div className="w-72 space-y-2">
+          <p className="text-body-sm-emphasis text-primary-neutral">checkStrategy="self"</p>
+          <Tree
+            checkable
+            checkStrategy="self"
+            checkedIds={selfChecked}
+            onCheckedChange={setSelfChecked}
+            defaultExpanded={expanded}
+            nodes={reasonCodes}
+          />
+          <p className="text-body-xs text-slate-500">
+            checked: {selfChecked.length ? selfChecked.join(', ') : '(none)'}
+          </p>
+        </div>
       </div>
     );
   },
