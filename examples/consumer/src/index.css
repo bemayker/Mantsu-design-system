@@ -1,0 +1,6 @@
+/* The package's own stylesheet: webfont and root font-family only. */
+@import '@bemayker/mantsu-design-system/styles.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

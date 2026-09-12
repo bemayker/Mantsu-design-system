@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Consumer smoke test
+        # Installs the tarball npm would publish, so a file missing from
+        # `files` or an entry point missing from `exports` fails here rather
+        # than in one of the four apps.
+        run: |
+          npm pack
+          cd examples/consumer
+          npm install ../../bemayker-mantsu-design-system-*.tgz
+          npx tsc --noEmit
+          npm run build

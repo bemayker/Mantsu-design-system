@@ -1,5 +1,10 @@
 node_modules/
 storybook-static/
 dist/
+*.tgz
 *.log
 .DS_Store
+
+# The smoke test installs the package from a tarball or the registry depending
+# on how it is run, so its lockfile is a local artefact, not a pinned input.
+examples/consumer/package-lock.json

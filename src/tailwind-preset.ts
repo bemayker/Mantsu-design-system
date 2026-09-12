@@ -1,9 +1,52 @@
-/** @type {import('tailwindcss').Config} */
-// Tailwind theme wired to the Mantsu design tokens. Keeping the mapping here
-// (rather than re-declaring hex values) means utility classes like
-// `bg-primary-blue` or `text-h2` resolve to the exact Figma values.
-export default {
-  content: ['./src/**/*.{ts,tsx,mdx}', './.storybook/**/*.{ts,tsx}'],
+/**
+ * Mantsu Design System — Tailwind preset
+ * ------------------------------------------------------------------
+ * The canonical Tailwind theme for the Mantsu MES UI, mirroring
+ * `src/tokens/tokens.ts`. Consuming apps add it as a preset instead of
+ * hand-copying colour and type values:
+ *
+ *   // tailwind.config.js
+ *   const mantsu = require('@bemayker/mantsu-design-system/tailwind-preset');
+ *   module.exports = {
+ *     presets: [mantsu],
+ *     content: [
+ *       './src/**\/*.{ts,tsx}',
+ *       './node_modules/@bemayker/mantsu-design-system/dist/**\/*.js',
+ *     ],
+ *   };
+ *
+ * The second `content` entry is required: this package ships JavaScript, not
+ * a prebuilt stylesheet, so the consumer's Tailwind build is what generates
+ * the utility classes our components reference. See README.md, "Styling".
+ *
+ * This repo's own `tailwind.config.js` consumes the same preset, so Storybook
+ * and every app render from one theme definition.
+ */
+
+// Tailwind's own `Config` type is a devDependency here and not something a
+// consumer should be forced to install, so the preset is typed structurally.
+// The font-size entries are tuples, not arrays: Tailwind's schema requires
+// exactly [size, configuration], and a widened `string[]` is rejected by it.
+type FontSizeEntry = [
+  fontSize: string,
+  configuration: { lineHeight?: string; letterSpacing?: string; fontWeight?: string },
+];
+
+export type MantsuTailwindPreset = {
+  theme: {
+    extend: {
+      colors: Record<string, string | Record<string, string>>;
+      backgroundImage: Record<string, string>;
+      fontFamily: Record<string, string[]>;
+      fontSize: Record<string, FontSizeEntry>;
+      boxShadow: Record<string, string>;
+      borderRadius: Record<string, string>;
+    };
+  };
+  plugins: never[];
+};
+
+export const preset: MantsuTailwindPreset = {
   theme: {
     extend: {
       colors: {
@@ -66,3 +109,5 @@ export default {
   },
   plugins: [],
 };
+
+export default preset;
