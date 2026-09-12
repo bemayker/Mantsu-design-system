@@ -1,16 +1,39 @@
 # Vendoring a component into a Mantsu app
 
-**This repo is source-only, not a publishable package.** `package.json` is
-`"private": true` with no `main`, no `module`, no `exports`, no `files` and no build
-script: there is nothing to `npm install`. So an app that needs a component here takes a
-**vendored copy**, and this file is the process for doing that the same way every time.
+> **Superseded for new components, 2026-09-12.** This repo is now a publishable package,
+> `@bemayker/mantsu-design-system` on GitHub Packages. Founder decision at the review of
+> NAV-1, worked out in NAV-13: option B, reversing option A of `86cb41584` (2026-08-14).
+>
+> **A component you need today is installed, not copied.** See the README for the
+> registry, token and Dockerfile setup.
+>
+> This document stays in force for exactly six copies that already exist, until a separate
+> migration story retires them: `dsTable` and `DataTable` (`mantsu-core`), `dsTree`,
+> `dsColorPicker`, `dsDropdown` and `dsSwitch` (`mantsu-downtimes`, `Mantsu-order-cockpit`).
+> Everything below still governs how those are kept in step with upstream, and the rule
+> that matters most has not changed: a gap is fixed HERE first, never only in the copy.
+>
+> Do not vendor anything new. If the package route does not work for a case, that is a
+> finding worth raising, not a reason to take a seventh copy.
+
+**Historical context.** When these copies were taken, this repo was source-only:
+`package.json` was `"private": true` with no `main`, no `module`, no `exports`, no `files`
+and no build script, so there was nothing to `npm install`. An app that needed a component
+took a **vendored copy**, and this file is the process for doing that the same way every
+time. That constraint is gone as of 2026-09-12; the process below applies only to the
+copies taken while it held.
 
 Founder decision, 2026-07-14, recorded in
 `mantsu-core/frontend/src/components/shared/dsTable/VENDORED.md`, and re-affirmed as
 "option A" on 2026-08-14 (ClickUp `86cb41584`) after weighing the alternative of making
-this repo publishable. That alternative is not rejected forever — it is a cross-repo
-infrastructure project (build, `exports` map, Tailwind preset, versioning, migrating three
-consumers), and it did not block the apps that needed components now.
+this repo publishable. That decision noted the alternative was not rejected forever: it is
+a cross-repo infrastructure project (build, `exports` map, Tailwind preset, versioning,
+migrating three consumers), and it did not block the apps that needed components then.
+
+It was reversed on 2026-09-12 (NAV-13). What changed: the suite rail and the settings
+scope page carry a protocol, the suite manifest, that has to agree across four apps at
+once. Five copies per protocol change is not a cost vendoring can carry, so the
+infrastructure project got done.
 
 This document exists because the convention was being reinvented per app. It is lifted
 from `mantsu-downtimes/frontend/src/components/shared/VENDORED.md`, the most complete of
@@ -83,5 +106,7 @@ undocumented.
 | `mantsu-lists` | — | |
 | `mantsu-downtimes` | `dsTree/` (`Tree`, `Checkbox`) | ADR-010; keeps the fullest divergence ledger |
 
-Add a row when you vendor something. Three apps quietly holding copies nobody has listed
-is the state this file exists to prevent.
+This table is now closed: no rows are added to it. A new component is installed from the
+package instead. The table is kept because three apps quietly holding copies nobody has
+listed is the state this file exists to prevent, and it is the checklist the migration
+story will work through.
