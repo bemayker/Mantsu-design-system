@@ -140,15 +140,35 @@ the schema and the parser, and only then to a producer.
 Items are rendered in array order. Ordinary items come before the *Configuration* block
 regardless of their position in the array, matching the design.
 
-**Open point for phase 2 (raised at NAV-4, 2026-09-12).** `nav[].label` has no source
-today. `routeContract.json` in Cockpit and Downtimes carries `moduleKey`, `path`, `group`,
-`order` and `requiresCapability`, but **no labels** — those live in the frontends' i18n
-resources, which a backend does not read. NAV-1 assumed the contract already had this
-shape; it does not. Producing `nav` therefore needs a decision: extend `routeContract.json`
-with an `en`/`nl` label per route, or keep a label map in each backend. Extending the
-contract is the smaller of the two, since the file is already the mirror that a route
-change must update and a test already enforces the mirroring. This blocks nothing in phase
-1, and NAV-5 and NAV-6 should not guess.
+### Where `nav` labels come from
+
+**Decision, Dider, 2026-09-12, at the review of NAV-4.** `routeContract.json` is extended
+with a label per route. It was raised because NAV-1 assumed the contract already carried
+what `nav` needs; it does not. Cockpit's and Downtimes' `routeContract.json` carry
+`moduleKey`, `path`, `group`, `order` and `requiresCapability`, and **no labels** at all:
+those live in the frontends' i18n resources, which a backend does not read.
+
+The alternative, a label map held in each backend, was rejected. `routeContract.json` is
+already the mirror that a route change has to update, and a unit test already fails when it
+and the route registry disagree, so a forgotten label turns red in a tier that runs in CI.
+A second map in the backend is a second place that can drift in silence, and drift is the
+thing this contract exists to make impossible.
+
+What that means concretely, normative for NAV-6:
+
+- Every entry in `routeContract.json` gains `label: { en, nl }`, required, both languages.
+  The existing mirroring test extends to cover it, so a route added without labels fails
+  the frontend unit tier rather than shipping an unlabelled rail row.
+- Cockpit and Downtimes extend the file they already have. Core and Lists generate one
+  from `APP_ROUTES` first; that generation is part of NAV-6.
+- `GET /api/v1/suite/nav` reads the contract and returns the `nav` array in this document's
+  shape. `group` maps straight through for `configuration`; Cockpit's and Downtimes'
+  existing `operations` group maps to `null`, since the design drops that heading.
+- The route contract keeps `requiresCapability`, and the manifest keeps ignoring it. Nav
+  entries of *other* apps are published unfiltered by design (NAV-1, *Risks*); the target
+  app enforces access itself with `RequireCapability`.
+
+Nothing here blocks phase 1: `nav` is absent from a phase 1 manifest.
 
 ### Icons
 
