@@ -23,5 +23,5 @@ export * from './PieChart';
 export * from './GaugeChart';
 export * from './ColorSwatchPicker';
 export * from './contrast';
-export * from './SuiteNav/manifest';
+export * from './SuiteNav';
 export { tokens, colors, gradients, typography, shadows, spacing, radii } from '../tokens/tokens';
