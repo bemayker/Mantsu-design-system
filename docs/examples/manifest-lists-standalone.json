@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "self": "lists",
+  "source": "fallback",
+  "apps": [
+    {
+      "key": "lists",
+      "name": "Lists",
+      "icon": "lists",
+      "url": "http://lists.10.10.10.4.nip.io",
+      "order": 10
+    }
+  ]
+}

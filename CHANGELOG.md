@@ -24,6 +24,11 @@ First published version. The repo was source-only before this; apps took vendore
 - A consumer smoke test app in `examples/consumer/`, run in CI against the packed tarball.
 - `.github/workflows/publish.yml` (tag-driven publish) and `.github/workflows/ci.yml`
   (typecheck, test, build, consumer smoke test on every pull request).
+- The suite manifest contract (NAV-4): `docs/suite-manifest.md` as the normative
+  document, `docs/suite-manifest.schema.json` for producer validation,
+  `docs/examples/` with the three cases, and `parseManifest` plus the manifest types in
+  `src/components/SuiteNav/manifest.ts`, exported from the package root. A test asserts
+  the document, the schema, the parser and the examples still agree.
 
 ### Changed
 

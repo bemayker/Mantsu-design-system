@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "self": "core",
+  "source": "core",
+  "suite": {
+    "dashboardUrl": "http://core.10.10.10.4.nip.io/",
+    "settingsUrl": "http://core.10.10.10.4.nip.io/settings/suite"
+  },
+  "apps": [
+    {
+      "key": "core",
+      "name": "Core",
+      "icon": "core",
+      "url": "http://core.10.10.10.4.nip.io",
+      "order": 10,
+      "nav": [
+        { "key": "locations", "label": { "en": "Locations", "nl": "Locaties" }, "path": "/location", "group": null },
+        { "key": "materials", "label": { "en": "Material management", "nl": "Materiaalbeheer" }, "path": "/materials", "group": null },
+        { "key": "equipment", "label": { "en": "Equipment management", "nl": "Equipmentbeheer" }, "path": "/equipment", "group": null },
+        { "key": "production-orders", "label": { "en": "Production orders", "nl": "Productieorders" }, "path": "/production-orders", "group": null },
+        { "key": "shift", "label": { "en": "Shift", "nl": "Ploeg" }, "path": "/shift", "group": null }
+      ]
+    }
+  ]
+}

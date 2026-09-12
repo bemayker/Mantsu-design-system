@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "self": "downtimes",
+  "source": "core",
+  "suite": {
+    "dashboardUrl": "http://core.10.10.10.4.nip.io/",
+    "settingsUrl": "http://core.10.10.10.4.nip.io/settings/suite"
+  },
+  "apps": [
+    {
+      "key": "core",
+      "name": "Core",
+      "icon": "core",
+      "url": "http://core.10.10.10.4.nip.io",
+      "order": 10,
+      "nav": [
+        { "key": "locations", "label": { "en": "Locations", "nl": "Locaties" }, "path": "/location", "group": null },
+        { "key": "materials", "label": { "en": "Material management", "nl": "Materiaalbeheer" }, "path": "/materials", "group": null },
+        { "key": "equipment", "label": { "en": "Equipment management", "nl": "Equipmentbeheer" }, "path": "/equipment", "group": null },
+        { "key": "production-orders", "label": { "en": "Production orders", "nl": "Productieorders" }, "path": "/production-orders", "group": null },
+        { "key": "shift", "label": { "en": "Shift", "nl": "Ploeg" }, "path": "/shift", "group": null }
+      ]
+    },
+    {
+      "key": "cockpit",
+      "name": "Order cockpit",
+      "icon": "cockpit",
+      "url": "http://cockpit.10.10.10.4.nip.io",
+      "order": 20,
+      "nav": [
+        { "key": "order-cockpit", "label": { "en": "Order cockpit", "nl": "Order cockpit" }, "path": "/cockpit", "group": null },
+        { "key": "order-overview", "label": { "en": "Order overview", "nl": "Orderoverzicht" }, "path": "/production-orders", "group": null },
+        { "key": "confirmations", "label": { "en": "Confirmations", "nl": "Afmeldingen" }, "path": "/confirmations", "group": null },
+        { "key": "scrap-reasons", "label": { "en": "Scrap reason tree", "nl": "Afkeurredenenboom" }, "path": "/scrap-reasons", "group": "configuration" },
+        { "key": "reason-assignment", "label": { "en": "Reason tree assignment", "nl": "Toewijzing redenenboom" }, "path": "/reason-assignment", "group": "configuration" }
+      ]
+    },
+    {
+      "key": "downtimes",
+      "name": "Downtimes",
+      "icon": "downtimes",
+      "url": "http://downtimes.10.10.10.4.nip.io",
+      "order": 30,
+      "nav": [
+        { "key": "downtime-records", "label": { "en": "Downtimes", "nl": "Stilstanden" }, "path": "/downtimes", "group": null },
+        { "key": "downtime-report", "label": { "en": "Report", "nl": "Rapport" }, "path": "/downtime-report", "group": null },
+        { "key": "equipment-status", "label": { "en": "Equipment dashboard", "nl": "Equipmentdashboard" }, "path": "/equipment-status", "group": null },
+        { "key": "downtime-reasons", "label": { "en": "Downtime reason tree", "nl": "Stilstandredenenboom" }, "path": "/downtime-reasons", "group": "configuration" },
+        { "key": "reasoncode-assignment", "label": { "en": "Reason tree assignment", "nl": "Toewijzing redenenboom" }, "path": "/reasoncode-assignment", "group": "configuration" }
+      ]
+    },
+    {
+      "key": "lists",
+      "name": "Lists",
+      "icon": "lists",
+      "url": "http://lists.10.10.10.4.nip.io",
+      "order": 40,
+      "nav": [
+        { "key": "configurations", "label": { "en": "Configurations", "nl": "Configuraties" }, "path": "/configuration", "group": null },
+        { "key": "execution", "label": { "en": "Execution", "nl": "Uitvoering" }, "path": "/execution", "group": null },
+        { "key": "reporting", "label": { "en": "Reporting", "nl": "Rapportage" }, "path": "/report", "group": null }
+      ]
+    },
+    {
+      "key": "reporting",
+      "name": "Ask Mantsu",
+      "icon": "reporting",
+      "url": "http://ask.10.10.10.4.nip.io",
+      "order": 50
+    }
+  ]
+}

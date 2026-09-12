@@ -36,6 +36,7 @@ tailwind.config.ts        # consumes the preset, so the theme has one definition
 DESIGN-SYSTEM.md          # compact reference for Cursor / codegen
 VENDORING.md              # the older vendoring route, still in force for six copies
 CHANGELOG.md              # one entry per released version
+docs/suite-manifest.md    # the suite manifest contract, normative for four repos
 ```
 
 ## Installing it in an app
@@ -161,6 +162,17 @@ Six components were vendored into apps before this package existed (`dsTree`, `d
 `dsColorPicker`, `dsDropdown`, `dsSwitch`, `DataTable`). They stay vendored under
 **[VENDORING.md](VENDORING.md)** until a separate migration story. New components are
 consumed from the package.
+
+## Cross-repo contracts
+
+`docs/suite-manifest.md` is the normative contract for the **suite manifest**, the payload
+that tells a Mantsu frontend which apps exist in a landscape. It is here rather than in an
+app repo because all four frontends already depend on this one, and the manifest is a
+protocol between six moving parts. It ships with a JSON Schema for producer validation,
+three worked examples, and `parseManifest`, exported from the package root, which is the
+only supported way to consume it. Backends implementing it (`mantsu-core`,
+`Mantsu-order-cockpit`, `mantsu-downtimes`, `mantsu-lists`) link to that document rather
+than restating it.
 
 ## Tokens
 
