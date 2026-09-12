@@ -33,5 +33,8 @@ from it. See README.md for consumer setup and the release procedure.
   it; the app then bumps the installed version. Never only in the app.
 - Six pre-existing vendored copies remain in the apps. VENDORING.md governs those and
   nothing else; do not vendor anything new.
+- `docs/suite-manifest.md`, `docs/suite-manifest.schema.json`, `docs/examples/*.json` and
+  `src/components/SuiteNav/manifest.ts` are one contract in four places, held together by
+  `src/test/suite-manifest.test.ts`. Change all of them in one commit, or the test fails.
 - Releasing is tag-driven: bump `version`, add a CHANGELOG entry, merge, then push a
   `v<version>` tag. The publish workflow refuses a tag that disagrees with package.json.
