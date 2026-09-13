@@ -59,7 +59,22 @@ export NODE_AUTH_TOKEN=ghp_...
 npm install @bemayker/mantsu-design-system
 ```
 
-**3. In GitHub Actions**: the built-in token can read packages inside the organisation.
+**3. In GitHub Actions**: the built-in token can read this package only once the
+consuming repository has been granted access to it. A package published by this repo
+belongs to this repo, and another repo's `GITHUB_TOKEN` gets
+
+```
+npm error 403 Permission permission_denied: read_package
+```
+
+until someone adds it. Two ways to fix that, either is enough:
+
+- set the package's visibility to **Internal** (package page -> Package settings ->
+  Change visibility), which makes it readable by every repository in the organisation;
+- or add each consuming repository under **Manage Actions access** with the Read role.
+
+Both are one-time, manual, and neither can be done from a workflow. Verified the hard
+way in NAV-7: an unprivileged probe from `mantsu-core` was refused before the grant.
 
 ```yaml
 - uses: actions/setup-node@v4
