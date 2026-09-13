@@ -63,6 +63,16 @@ describe('the three forms of the contract agree', () => {
     expect(doc).toContain('# The suite manifest');
   });
 
+  it('spells out how nav is published, including the scope each app requires', () => {
+    // NAV-6 phase 2. The scope prefix is the app's own name for itself, not its
+    // suite key, and getting it wrong is a 403 that reads like a key problem.
+    // That cost a round trip against the real stack, so it is written down.
+    expect(doc).toContain('### Publishing `nav`: `GET /api/v1/suite/nav`');
+    expect(doc).toContain('ordercockpit:suite:read');
+    expect(doc).toContain('downtimes:suite:read');
+    expect(doc).toContain('lists:suite:read');
+  });
+
   it('spells out the versioning and fallback rules in the document, not only in code', () => {
     // AC of NAV-4: the rules are normative prose, so that NAV-5 and NAV-6 can
     // implement them without reading TypeScript.
