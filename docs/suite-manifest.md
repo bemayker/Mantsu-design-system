@@ -140,6 +140,60 @@ the schema and the parser, and only then to a producer.
 Items are rendered in array order. Ordinary items come before the *Configuration* block
 regardless of their position in the array, matching the design.
 
+### Publishing `nav`: `GET /api/v1/suite/nav`
+
+Phase 2. Every app serves its own navigation at this path, and Core fetches each one
+in-cluster at `{app.backendUrl}` once per its own cache window, then folds the answers
+into the manifest. Core's own `nav` comes from its route contract in-process; it does not
+call itself.
+
+```json
+{ "nav": [ { "key": "...", "label": { "en": "...", "nl": "..." }, "path": "/...", "group": null } ] }
+```
+
+**Who may read it.** A signed-in user, or a verified S2S caller. Core's aggregator is
+neither a user nor, without a credential, a verified anything, so the S2S half is what
+makes aggregation work at all.
+
+Leaving the route open in-cluster was tried and rejected: Order cockpit's
+`assert_all_routes_declared` refuses to start an app with an unauthenticated route under
+`/api/`, deliberately, and that rule is worth more than the convenience of not configuring
+a key. So Core authenticates.
+
+**One key, three scopes.** Core holds one outbound key (`SUITE_S2S_KEY_NAME` /
+`SUITE_S2S_SECRET`) that has to exist in every app's own inbound `MCP_S2S_KEYS` with the
+same secret. NAV-11 registers it. Three secrets in Core's values would be three things to
+rotate for no additional separation.
+
+The **scope** is per app, though, because each app derives what it requires from the
+request path under its own prefix:
+
+| App | Scope Core must present |
+|---|---|
+| Order cockpit | `ordercockpit:suite:read` |
+| Downtimes | `downtimes:suite:read` |
+| Lists | `lists:suite:read` |
+
+The prefix is the app's own name for itself, not its suite key: Order cockpit calls itself
+`ordercockpit`. Getting this wrong is a **403**, not a 401, which reads like a key problem
+and is not one.
+
+**Failure is ordinary.** An app that times out, 404s, answers malformed JSON, or rejects
+the credential contributes no `nav` and keeps its row in `apps`. Core's manifest is never
+held up by a neighbour, and a landscape with no suite key configured simply degrades to
+phase 1. The same tolerance is why enabling aggregation cannot take a rail down.
+
+**What is not published.** No capability or role information. An app's navigation goes out
+unfiltered and the target app enforces access when someone follows a link (NAV-1, *Risks*).
+Filtering here would mean Core knowing every app's authorization model.
+
+**What each app leaves out of its own `nav`:** its settings page, in every app, because the
+rail reaches settings through its pinned row and the scope column. Core additionally leaves
+out `dashboard` (it is the suite-wide top-level row, linked from `suite.dashboardUrl`, and
+publishing it twice would put it in the rail twice) and `userManagement` (the design moves
+Users into Settings › Suite › Users & access). Order cockpit leaves out `serviceStatus`,
+per the founder decision at the review of NAV-1, open point 2.
+
 ### Where `nav` labels come from
 
 **Decision, Dider, 2026-09-12, at the review of NAV-4.** `routeContract.json` is extended
@@ -169,6 +223,17 @@ What that means concretely, normative for NAV-6:
   app enforces access itself with `RequireCapability`.
 
 Nothing here blocks phase 1: `nav` is absent from a phase 1 manifest.
+
+**Done, 2026-09-13.** All four repos now carry `label: { en, nl }` on every route in their
+`routeContract.json`, and a frontend unit test in each fails when the contract and the
+route registry disagree, labels included. Core and Lists had no contract at all and now
+generate one from `APP_ROUTES`. `path` in Lists' contract is `matchPrefixes[0]` rather than
+`to`, because `to` there may be a function of the caller's roles and what another app's
+rail links to must not depend on who asks.
+
+The file travels to each backend through one `COPY` line in its Dockerfile rather than a
+ConfigMap: a ConfigMap would put the navigation in the chart, where it drifts from the
+routes it describes on the first release that forgets to update it.
 
 ### Icons
 
