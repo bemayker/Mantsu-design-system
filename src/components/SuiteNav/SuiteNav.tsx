@@ -102,10 +102,13 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
   settingsBadge,
   language = 'en',
   labels,
+  testIdPrefix = '',
   onUnsupportedSchema,
   className,
 }) => {
   const text = { ...DEFAULT_LABELS, ...labels };
+  /** Every id this component emits goes through here. See `testIdPrefix`. */
+  const testId = (name: string) => `${testIdPrefix}${name}`;
   const supported = manifest.schemaVersion === SUITE_MANIFEST_SCHEMA_VERSION;
   const navRef = useRef<HTMLElement>(null);
 
@@ -166,7 +169,7 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
           {link(
             {
               href: item.href,
-              testId: `suitenav-item-${appKey}-${item.key}`,
+              testId: testId(`suitenav-item-${appKey}-${item.key}`),
               active,
               className: subItemClass(density, active),
             },
@@ -226,7 +229,7 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
           {link(
             {
               href: app.url,
-              testId: `suitenav-app-${app.key}`,
+              testId: testId(`suitenav-app-${app.key}`),
               active: false,
               className: appRowClass(density, false),
             },
@@ -252,7 +255,7 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
             aria-expanded={open}
             aria-controls={panelId}
             className={appRowClass(density, isSelf)}
-            data-testid={`suitenav-app-${app.key}`}
+            data-testid={testId(`suitenav-app-${app.key}`)}
           >
             <span className={APP_ICON}>{icon}</span>
             <span className="truncate">{app.name}</span>
@@ -290,7 +293,7 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
               type="button"
               onClick={onLogoClick}
               className="block h-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
-              data-testid="suitenav-logo"
+              data-testid={testId('suitenav-logo')}
             >
               {logo}
             </button>
@@ -308,7 +311,7 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
             {link(
               {
                 href: dashboard,
-                testId: 'suitenav-dashboard',
+                testId: testId('suitenav-dashboard'),
                 active: activeKey === 'dashboard',
                 className: topLevelRowClass(density, activeKey === 'dashboard'),
               },
@@ -331,7 +334,7 @@ export const SuiteNav: React.FC<SuiteNavProps> = ({
           {link(
             {
               href: settingsHref,
-              testId: 'suitenav-settings',
+              testId: testId('suitenav-settings'),
               active: activeKey === 'settings',
               className: topLevelRowClass(density, activeKey === 'settings'),
             },

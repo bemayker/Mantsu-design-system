@@ -99,6 +99,17 @@ export interface SuiteNavProps {
   language?: 'en' | 'nl';
   labels?: SuiteNavLabels;
   /**
+   * Prepended to every `data-testid` this component emits.
+   *
+   * An app renders the rail twice: once as the persistent desktop rail and
+   * once inside its mobile drawer. Below the breakpoint both are in the DOM at
+   * the same time (the desktop one merely `display: none`), so without a
+   * prefix every id exists twice on one page and `getByTestId` is ambiguous in
+   * Testing Library and an error in Playwright's strict mode. The drawer
+   * passes something like `'mobile-'`; the rail passes nothing.
+   */
+  testIdPrefix?: string;
+  /**
    * Called once when the manifest's `schemaVersion` is not the one this
    * component implements. The rail then renders this app's own items and
    * Settings only. Never an empty menu.

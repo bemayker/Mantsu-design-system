@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 package follows [semantic versioning](https://semver.org/). See "Versioning" in the README
 for what counts as breaking.
 
+## 1.1.0
+
+### Added
+
+- `SuiteNav` takes a `testIdPrefix`, prepended to every `data-testid` it emits.
+  An app renders the rail twice, once as the desktop rail and once inside its
+  mobile drawer, and below the breakpoint both are in the DOM at the same time.
+  Without a prefix every id exists twice on one page: ambiguous in Testing
+  Library, an error in Playwright's strict mode. The drawer passes `'mobile-'`;
+  the rail passes nothing and is unchanged.
+
+
 ## [1.0.0] - 2026-09-12
 
 First published version. The repo was source-only before this; apps took vendored copies.
