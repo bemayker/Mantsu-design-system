@@ -29,6 +29,17 @@ First published version. The repo was source-only before this; apps took vendore
   `docs/examples/` with the three cases, and `parseManifest` plus the manifest types in
   `src/components/SuiteNav/manifest.ts`, exported from the package root. A test asserts
   the document, the schema, the parser and the examples still agree.
+- `SuiteNav` (NAV-2), the suite navigation rail: app rows, submenus, the inert
+  *Configuration* subtitle, badges, a pinned Settings row and a touch density. Pure
+  presentation: no router, no i18n, no fetch, no `localStorage`. Ten Storybook stories
+  and 32 tests.
+- Four suite navigation tokens in `tokens.ts` and the preset together: `accent-blue`,
+  `rail-divider`, `blue-tint` and `slate.100`. These come from the menu-unification
+  handoff rather than the Figma file, so a regeneration from Figma must not drop them; a
+  test fails if it does.
+- The four Mantsu module icons (`ModuleCockpit`, `ModuleDowntimes`, `ModuleLists`,
+  `ModuleReporting`) under `./icons`, generated from the handoff's SVG sheet by
+  `scripts/generate-module-icons.mjs`. Core keeps a Lucide stand-in supplied by the app.
 
 ### Changed
 

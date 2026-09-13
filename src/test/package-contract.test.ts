@@ -38,6 +38,16 @@ describe('tailwind preset', () => {
     expect(preset.theme.extend.colors.frost).toBe(colors.frost);
   });
 
+  it('carries the suite navigation tokens NAV-2 added', () => {
+    // These four came from the menu-unification handoff, not from Figma, so a
+    // regeneration of tokens.ts from Figma could silently drop them. The rail
+    // would then render without its active bar and without its divider.
+    expect(preset.theme.extend.colors['accent-blue']).toBe(colors.accentBlue);
+    expect(preset.theme.extend.colors['rail-divider']).toBe(colors.railDivider);
+    expect(preset.theme.extend.colors['blue-tint']).toBe(colors.blueTint);
+    expect((preset.theme.extend.colors.slate as Record<string, string>)[100]).toBe(colors.slate100);
+  });
+
   it('mirrors tokens.ts rather than inventing values', () => {
     expect(preset.theme.extend.backgroundImage['primary-gradient']).toBe(tokens.gradients.primary);
     expect(preset.theme.extend.boxShadow['mantsu-lg']).toBe(tokens.shadows.large);

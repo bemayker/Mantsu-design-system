@@ -29,12 +29,20 @@ export const colors = {
   frost: '#eef6f8',
   selectedBlue: '#eff6ff',
 
+  // Suite navigation (NAV-2). From the menu-unification handoff rather than the
+  // Figma Design System file, which does not carry them yet. Regenerating the
+  // block above from Figma must not drop these four.
+  accentBlue: '#3b9eff',
+  railDivider: '#0f2f60',
+  blueTint: '#eaf2fb',
+
   // Neutral Colors
   slate950: '#0c1222',
   slate600: '#475569',
   slate500: '#717680',
   slate400: '#94a3b8',
   slate200: '#e2e8f0',
+  slate100: '#f1f5f9',
   slate50: '#f8fafc',
   white: '#ffffff',
 

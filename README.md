@@ -185,6 +185,18 @@ See `DESIGN-SYSTEM.md` for the full table.
 
 Form: Button, Input, Switch, Checkbox, Radio
 Data display: Badge, Tag, Card, OptionCard, Table, EmptyState
-Navigation: Tabs, Breadcrumbs, Sidebar, TopNavBar, Tree
+Navigation: Tabs, Breadcrumbs, Sidebar, TopNavBar, Tree, SuiteNav
 Feedback: Modal, SideDrawer, Toast, Tooltip
 Charts: PieChart, GaugeChart, ProgressBar
+
+`SuiteNav` is the suite navigation rail. It takes the suite manifest, this app's own
+items, and a `renderLink` that supplies the app's own router link; it owns no state,
+fetches nothing and translates nothing. See its Storybook stories, and
+`docs/suite-manifest.md` for the payload it renders from.
+
+The module icons live at `@bemayker/mantsu-design-system/icons` and are generated from
+the handoff's SVG sheet by `scripts/generate-module-icons.mjs`. Do not hand-edit them:
+
+```bash
+node scripts/generate-module-icons.mjs [path-to-mantsu-module-icons.svg]
+```

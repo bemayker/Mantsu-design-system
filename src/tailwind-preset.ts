@@ -59,8 +59,13 @@ export const preset: MantsuTailwindPreset = {
         'sky-mist': '#bcddff',
         frost: '#eef6f8',
         'selected-blue': '#eff6ff',
+        // Suite navigation (NAV-2).
+        'accent-blue': '#3b9eff',
+        'rail-divider': '#0f2f60',
+        'blue-tint': '#eaf2fb',
         slate: {
           50: '#f8fafc',
+          100: '#f1f5f9',
           200: '#e2e8f0',
           400: '#94a3b8',
           500: '#717680',
