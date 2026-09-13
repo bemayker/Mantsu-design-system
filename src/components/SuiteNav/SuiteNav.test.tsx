@@ -360,4 +360,17 @@ describe('the ten-item app the design asks for', () => {
     const panel = document.getElementById('suitenav-panel-downtimes')!;
     expect(within(panel).getAllByRole('link')).toHaveLength(10);
   });
+
+  it('prefixes every id it emits, so an app can render the rail twice', () => {
+    // The drawer case: below the breakpoint both the desktop rail and the
+    // drawer are mounted, and an unprefixed id would exist twice on one page.
+    renderRail({ testIdPrefix: 'mobile-' });
+
+    expect(screen.getByTestId('mobile-suitenav-dashboard')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-suitenav-settings')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-suitenav-app-core')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-suitenav-item-downtimes-records')).toBeInTheDocument();
+    // And nothing unprefixed is left behind.
+    expect(screen.queryByTestId('suitenav-settings')).not.toBeInTheDocument();
+  });
 });
