@@ -185,14 +185,19 @@ See `DESIGN-SYSTEM.md` for the full table.
 
 Form: Button, Input, Switch, Checkbox, Radio
 Data display: Badge, Tag, Card, OptionCard, Table, EmptyState
-Navigation: Tabs, Breadcrumbs, Sidebar, TopNavBar, Tree, SuiteNav
+Navigation: Tabs, Breadcrumbs, Sidebar, TopNavBar, Tree, SuiteNav, SettingsScopePage
 Feedback: Modal, SideDrawer, Toast, Tooltip
 Charts: PieChart, GaugeChart, ProgressBar
 
-`SuiteNav` is the suite navigation rail. It takes the suite manifest, this app's own
-items, and a `renderLink` that supplies the app's own router link; it owns no state,
-fetches nothing and translates nothing. See its Storybook stories, and
-`docs/suite-manifest.md` for the payload it renders from.
+`SuiteNav` is the suite navigation rail and `SettingsScopePage` is the settings chrome.
+Both take the suite manifest, this app's own items or rows, and a `renderLink` that
+supplies the app's own router link; they own no state, fetch nothing and translate
+nothing. See their Storybook stories, and `docs/suite-manifest.md` for the payload they
+render from.
+
+`scopesFromManifest` builds the settings scope column from a manifest. Use it rather
+than assembling the list per app: it is where the rules live about which scopes exist
+in a given landscape.
 
 The module icons live at `@bemayker/mantsu-design-system/icons` and are generated from
 the handoff's SVG sheet by `scripts/generate-module-icons.mjs`. Do not hand-edit them:

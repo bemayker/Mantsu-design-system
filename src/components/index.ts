@@ -24,4 +24,5 @@ export * from './GaugeChart';
 export * from './ColorSwatchPicker';
 export * from './contrast';
 export * from './SuiteNav';
+export * from './SettingsScopePage';
 export { tokens, colors, gradients, typography, shadows, spacing, radii } from '../tokens/tokens';

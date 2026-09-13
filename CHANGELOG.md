@@ -33,6 +33,10 @@ First published version. The repo was source-only before this; apps took vendore
   *Configuration* subtitle, badges, a pinned Settings row and a touch density. Pure
   presentation: no router, no i18n, no fetch, no `localStorage`. Ten Storybook stories
   and 32 tests.
+- `SettingsScopePage` (NAV-3), the settings chrome: a scope column and a row list.
+  `scopesFromManifest` derives the column from the suite manifest, so a scope for an
+  app this landscape does not have cannot appear, the `suite` scope exists only where
+  Core does, and an app with no settings gets no scope. Four stories, 21 tests.
 - Four suite navigation tokens in `tokens.ts` and the preset together: `accent-blue`,
   `rail-divider`, `blue-tint` and `slate.100`. These come from the menu-unification
   handoff rather than the Figma file, so a regeneration from Figma must not drop them; a
