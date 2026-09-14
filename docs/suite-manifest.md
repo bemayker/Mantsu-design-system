@@ -3,7 +3,7 @@
 The contract that tells a Mantsu frontend which apps exist in this landscape, where they
 live, and what to put in the navigation rail.
 
-Version 1. Normative for `mantsu-core`, `Mantsu-order-cockpit`, `mantsu-downtimes` and
+Version 1. Normative for `mantsu-core`, `mantsu-order-cockpit`, `mantsu-downtimes` and
 `mantsu-lists`. This document, `suite-manifest.schema.json` and
 `../src/components/SuiteNav/manifest.ts` are one artefact in three forms; a test asserts
 the examples below satisfy both the schema and the parser. Do not restate the schema in

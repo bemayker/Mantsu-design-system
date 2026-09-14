@@ -9,7 +9,7 @@
 >
 > This document stays in force for exactly six copies that already exist, until a separate
 > migration story retires them: `dsTable` and `DataTable` (`mantsu-core`), `dsTree`,
-> `dsColorPicker`, `dsDropdown` and `dsSwitch` (`mantsu-downtimes`, `Mantsu-order-cockpit`).
+> `dsColorPicker`, `dsDropdown` and `dsSwitch` (`mantsu-downtimes`, `mantsu-order-cockpit`).
 > Everything below still governs how those are kept in step with upstream, and the rule
 > that matters most has not changed: a gap is fixed HERE first, never only in the copy.
 >

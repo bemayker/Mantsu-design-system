@@ -186,7 +186,7 @@ app repo because all four frontends already depend on this one, and the manifest
 protocol between six moving parts. It ships with a JSON Schema for producer validation,
 three worked examples, and `parseManifest`, exported from the package root, which is the
 only supported way to consume it. Backends implementing it (`mantsu-core`,
-`Mantsu-order-cockpit`, `mantsu-downtimes`, `mantsu-lists`) link to that document rather
+`mantsu-order-cockpit`, `mantsu-downtimes`, `mantsu-lists`) link to that document rather
 than restating it.
 
 ## Tokens
