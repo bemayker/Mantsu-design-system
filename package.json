@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bemayker/Mantsu-design-system.git"
+    "url": "git+https://github.com/bemayker/mantsu-design-system.git"
   },
   "type": "module",
   "sideEffects": false,

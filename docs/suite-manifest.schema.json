@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/bemayker/Mantsu-design-system/docs/suite-manifest.schema.json",
+  "$id": "https://github.com/bemayker/mantsu-design-system/docs/suite-manifest.schema.json",
   "title": "Mantsu suite manifest, version 1",
   "description": "The landscape a Mantsu frontend renders its navigation rail from. Normative document: docs/suite-manifest.md. This schema is for PRODUCER validation: it sets additionalProperties false so a backend emitting an undefined field fails its own tests. Consumers must not validate with it, because ignoring unknown fields is what lets the contract grow additively.",
   "type": "object",
